@@ -1,30 +1,66 @@
+import allure
 from class_api import ApiKinopoisk
 
-api = ApiKinopoisk
+api = ApiKinopoisk(api_url='https://api.kinopoisk.dev')
 
-# Позитивные проверки
+
+@allure.suite("Кинопоиск API")
+@allure.feature("Позитивные проверки")
+@allure.epic("Кинопоиск онлайн API")
+@allure.title("Поиск филма по названию")
 def test_poisk():
-    fil = api.search_film_namen().status_code
+    fil = api.search_film_namen('Реквием по мечте')
 
-    assert fil == 200
+    with allure.step("Сверяем статус результата"):
+        assert fil.status_code == 200
+    with allure.step("Сравниваем название фильма с введённым в поиск"):
+        assert fil.json()["docs"][0]["name"] == "Реквием по мечте"
 
+
+@allure.suite("Кинопоиск API")
+@allure.feature("Позитивные проверки")
+@allure.epic("Кинопоиск онлайн API")
+@allure.title("Универсальный поиск фильмов")
 def test_universal():
-    univ = api.universal_search_film().status_code
+    with allure.step("Поиск по жанру"):
+        univ = api.universal_search_film('ужасы')
 
-    assert univ == 200
+    with allure.step("Сверяем статус результата"):
+        assert univ.status_code == 200
+    with allure.step("Сверяем жанр фильма с заданным"):
+        assert univ.json()["docs"][3]["genres"][0]["name"] == "ужасы"
 
+
+@allure.suite("Кинопоиск API")
+@allure.epic("Кинопоиск онлайн API")
+@allure.feature("Позитивные проверки")
+@allure.title("Список жанров")
 def test_list():
-    lis = api.list_genre().status_code
+    lis = api.list_genre()
 
-    assert lis == 200
+    with allure.step("Сверяем статус результата"):
+        assert lis.status_code == 200
 
-# Негативные проверки
+
+@allure.suite("Кинопоиск API")
+@allure.epic("Кинопоиск онлайн API")
+@allure.feature("Негативные проверки")
+@allure.title("Поиск фильма по id")
 def test_film_id():
-    id_fil = api.search_film_id().status_code
+    with allure.step("Вводим id, только вместо цифр буквы"):
+        id_fil = api.search_film_id('боб')
 
-    assert id_fil == 400
+    with allure.step("Сверяем статус результата"):
+        assert id_fil.status_code == 400
 
+
+@allure.suite("Кинопоиск API")
+@allure.epic("Кинопоиск онлайн API")
+@allure.feature("Негативные проверки")
+@allure.title("Поиск фильма по рейтингу")
 def test_rating():
-    ra = api.search_film_rating().status_code
+    with allure.step("Вводим рейтинг, выходящий из-за границы предела"):
+        ra = api.search_film_rating("12")
 
-    assert ra == 400
+    with allure.step("Сверяем статус результата"):
+        assert ra.status_code == 400
